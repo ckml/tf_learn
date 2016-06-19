@@ -70,8 +70,6 @@ test_instance.shape=(1, 784)
 test_label = np.argmax(mnist.test.labels[0])
 
 predicted_label = Predict(test_instance, model, sess);
-#print(sess.run(model["prediction"],
-#               feed_dict={model["net_input"]: test_instance}))
 
 print("Predicted:", predicted_label, "Truth: ", test_label)
 
