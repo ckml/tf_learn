@@ -75,7 +75,7 @@ def TrainLL(train_features, train_labels, valid_features, valid_labels,
             print("Model saved in file: %s" % save_path)
     return sess, prediction, features
 
-mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+mnist = input_data.read_data_sets("/tmp/MNIST_data/", one_hot=True)
 
 train_features = mnist.train.images
 train_labels = mnist.train.labels
@@ -88,7 +88,7 @@ test_labels = mnist.test.labels
 
 sess, prediction, features = TrainLL(train_features, train_labels,
                                      valid_features,
-                                     valid_labels, 200, 100)
+                                     valid_labels, 100, 100)
 
 test_instance = test_features[50, :]
 test_instance.shape = (1, 784)
