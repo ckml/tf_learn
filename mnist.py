@@ -15,9 +15,15 @@ def TrainLL(train_features, train_labels, valid_features, valid_labels,
 
     W = tf.Variable(tf.zeros([num_features, num_classes]), name="weights")
     b = tf.Variable(tf.zeros([num_classes]), name="bias")
-    net_output = tf.nn.softmax(tf.matmul(features, W) + b)
 
-    loss = -tf.reduce_sum(label * tf.log(net_output))
+    # cross entropy
+    #net_output = tf.nn.softmax(tf.matmul(features, W) + b)
+    #loss = -tf.reduce_sum(label * tf.log(net_output))
+
+    # log loss
+    net_output = tf.matmul(features, W) + b
+    loss = tf.log(1.0 + tf.exp(-(label * 2 - 1) * net_output))
+
     optimizer = tf.train.GradientDescentOptimizer(0.005).minimize(loss)
 
     prediction = tf.argmax(net_output, 1)
