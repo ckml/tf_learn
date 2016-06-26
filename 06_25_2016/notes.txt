@@ -1,0 +1,14 @@
+Log loss
+loss = tf.log(1.0 + tf.exp(-(label * 2 - 1) * net_output))
+More sensitive on outliers
+
+Track the training
+register a variable
+writer
+every 10 epochs to record
+tensor baord: /bin/tensorboard --logdir=
+View it in the browser
+
+Checkpoint
+saver
+save session
