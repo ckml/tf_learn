@@ -5,7 +5,7 @@ from tensorflow.examples.tutorials.mnist import input_data
 
 
 def TrainLL(train_features, train_labels, valid_features, valid_labels,
-            num_epochs, batch_size):
+            num_epochs, batch_size, resume_training=False):
     num_instances = train_features.shape[0]
     num_features = train_features.shape[1]
     num_classes = train_labels.shape[1]
@@ -42,6 +42,10 @@ def TrainLL(train_features, train_labels, valid_features, valid_labels,
 
     # create a writer
     summary_writer = tf.train.SummaryWriter("/tmp/tf_trace3/", sess.graph)
+
+    # resume from last checkpoint
+    if resume_training:
+        saver.restore(sess, "/tmp/model.ckpt")
 
     for epoch_i in range(num_epochs):
         indices = np.arange(num_instances)
@@ -90,6 +94,9 @@ sess, prediction, features = TrainLL(train_features, train_labels,
                                      valid_features,
                                      valid_labels, 100, 100)
 
+sess, prediction, features = TrainLL(train_features, train_labels,
+                                     valid_features,
+                                     valid_labels, 100, 100, True)
 test_instance = test_features[50, :]
 test_instance.shape = (1, 784)
 predicted = sess.run(prediction, feed_dict={features: test_instance})
