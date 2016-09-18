@@ -55,7 +55,6 @@ def TrainSVM(train_features, train_labels, valid_features, valid_labels,
 def TrainKSVM(train_features, train_labels, valid_features, valid_labels,
                num_kfeatures, lamda, num_epochs, batch_size):
     num_instances = train_features.shape[0]
-    num_features = train_features.shape[1]
     num_classes = train_labels.shape[1]
 
     indices = np.arange(num_instances)
@@ -96,10 +95,10 @@ def TrainKSVM(train_features, train_labels, valid_features, valid_labels,
                     name="weights")
     b = tf.Variable(tf.random_normal([num_classes]), name="bias")
 
-    net_output = tf.nn.softmax(tf.matmul(kfeatures, W) + b)
+    net_output = tf.nn.softmax(tf.matmul(kfeatures, W) + b) + 1e-10
 
     loss = -tf.reduce_sum(label * tf.log(net_output))
-    optimizer = tf.train.GradientDescentOptimizer(0.005).minimize(loss)
+    optimizer = tf.train.GradientDescentOptimizer(0.0001).minimize(loss)
 
     prediction = tf.argmax(net_output, 1)
     is_correct = tf.equal(prediction, tf.argmax(label, 1))
@@ -148,4 +147,4 @@ valid_labels = mnist.validation.labels
 test_features = mnist.test.images
 test_labels = mnist.test.labels
 
-TrainKSVM(train_features, train_labels, valid_features, valid_labels, 500, 0.01, 10000, 100)
+TrainKSVM(train_features, train_labels, valid_features, valid_labels, 2000, 0.01, 10000, 100)
