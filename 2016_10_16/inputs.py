@@ -9,7 +9,7 @@ from tensorflow.python.lib.io import file_io
 flags = tf.flags
 FLAGS = flags.FLAGS
 
-flags.DEFINE_integer('batch_size', 3,
+flags.DEFINE_integer('batch_size', 5,
                      'Number of input records used per batch.')
 flags.DEFINE_boolean(
     'is_predicting', False,
@@ -21,12 +21,48 @@ flags.DEFINE_integer(
     'smaller values, e.g. 4, 2 or 1, if host memory is constrained.')
 
 LABEL = 'over_50k'
-NUMERIC_FEATURES = ['age', 'education-num', 'hours-per-week', 'capital-gain',
-                    'capital-loss']
-CATEGORICAL_FEATURES = ['marital-status', 'native-country', 'workclass', 'sex',
-                        'education', 'relationship', 'occupation', 'race']
 OUT_OF_VOCAB_KEY = 'UNKNOWN'
-MAX_READ_THREADS = 2  # On Haswell machines, there are 36 physical cores.
+MAX_READ_THREADS = 1  # On Haswell machines, there are 36 physical cores.
+
+VOCAB = {}
+VOCAB[LABEL] = [" <=50K", " >50K"]
+VOCAB["workclass"] = [" Private", " Self-emp-not-inc", " Self-emp-inc",
+                      " Federal-gov", " Local-gov", " State-gov",
+                      " Without-pay", " Never-worked"]
+VOCAB["education"] = [" Bachelors", " Some-college", " 11th", " HS-grad",
+                      " Prof-school", " Assoc-acdm", " Assoc-voc", " 9th",
+                      " 7th-8th", " 12th", " Masters", " 1st-4th", " 10th",
+                      " Doctorate", " 5th-6th", " Preschool"]
+VOCAB["marital-status"] = [" Married-civ-spouse", " Divorced",
+                           " Never-married", " Separated", " Widowed",
+                           " Married-spouse-absent", " Married-AF-spouse"]
+VOCAB["occupation"] = [" Tech-support", " Craft-repair", " Other-service",
+                       " Sales", " Exec-managerial", " Prof-specialty",
+                       " Handlers-cleaners", " Machine-op-inspct",
+                       " Adm-clerical", " Farming-fishing",
+                       " Transport-moving", " Priv-house-serv",
+                       " Protective-serv", " Armed-Forces"]
+VOCAB["relationship"] = [" Wife", " Own-child", " Husband",
+                         " Not-in-family",
+                         " Other-relative", " Unmarried"]
+VOCAB["race"] = [" White", " Asian-Pac-Islander", " Amer-Indian-Eskimo",
+                 " Other", " Black"]
+VOCAB["sex"] = [" Female", " Male"]
+VOCAB["native-country"] = [" United-States", " Cambodia", " England",
+                           " Puerto-Rico", " Canada", " Germany",
+                           " Outlying-US(Guam-USVI-etc)", " India",
+                           " Japan",
+                           " Greece", " South", " China", " Cuba", " Iran",
+                           " Honduras", " Philippines", " Italy", " Poland",
+                           " Jamaica", " Vietnam", " Mexico", " Portugal",
+                           " Ireland", " France", " Dominican-Republic",
+                           " Laos", " Ecuador", " Taiwan", " Haiti",
+                           " Columbia",
+                           " Hungary", " Guatemala", " Nicaragua",
+                           " Scotland",
+                           " Thailand", " Yugoslavia", " El-Salvador",
+                           " Trinadad&Tobago", " Peru", " Hong",
+                           " Holand-Netherlands"]
 
 
 def _files(pattern):
@@ -36,25 +72,6 @@ def _files(pattern):
         raise IOError('Unable to find input files.')
     return files
 
-
-def _file_lines(text_file):
-    """Read a text file and returns its lines in a list."""
-    return file_io.read_file_to_string(text_file).split()
-
-
-def _feature_spec():
-    """Defines the input features in each example."""
-    features = {LABEL: tf.FixedLenFeature(
-        shape=[], dtype=tf.float32, default_value=0.0)}
-    for i in NUMERIC_FEATURES:
-        features[i] = tf.FixedLenFeature(
-            shape=[], dtype=tf.float32, default_value=0.0)
-    for c in CATEGORICAL_FEATURES:
-        features[c] = tf.FixedLenFeature(
-            shape=[], dtype=tf.string, default_value='')
-    return features
-
-
 def _read(filename_queue):
     """Reads serialized examples."""
     reader = tf.TextLineReader()
@@ -63,43 +80,40 @@ def _read(filename_queue):
     return serialized_examples,
 
 
-# def _embed(features):
-#     """Embedding lookup for categorical features."""
-#     embeddings = []
-#     with tf.name_scope('embed'):
-#         for c in CATEGORICAL_FEATURES:
-#             vocab_file = FLAGS.vocab_dir + '/' + c + '.txt'
-#             # print(vocab_file)
-#             vocab = _file_lines(vocab_file)
-#             vocab_size = len(vocab) + 1
-#             embedding_size = int(math.floor(6 * vocab_size ** 0.25))
-#             # print(c, embedding_size)
-#             embedding_weights = tf.Variable(
-#                 tf.truncated_normal(
-#                     [vocab_size, embedding_size],
-#                     stddev=1.0 / math.sqrt(vocab_size)),
-#                 name='%s_embedding' % c)
-#             ids = tf.contrib.lookup.string_to_index(
-#                 features[c],
-#                 mapping=[OUT_OF_VOCAB_KEY] + vocab,
-#                 default_value=0,
-#                 name='%s_lookup' % c)
-#             embedding = tf.nn.embedding_lookup(
-#                 embedding_weights, ids, name='%s_lookup_embedding' % c)
-#             embeddings.append(embedding)
-#     return embeddings
-
-
 def _transform(data):
     """Transform features into examples and labels."""
-    labels = data.pop(LABEL)
-    features = [data["age"], data["fnlwgt"], data["education-num"],
-                data["capital-gain"], data["capital-loss"],
-                data["hours-per-week"]]
 
-    #TODO: handle data["workclass"], data["fnlwgt"], data["education"], data[
-    #    "marital-status"], data["occupation"], data["relationship"], data[
-    #    "race"], data["sex"], data["native-country"]
+    labels = tf.contrib.lookup.string_to_index(
+        data.pop(LABEL),
+        mapping=VOCAB[LABEL],
+        default_value=0,
+        name=LABEL)
+
+    labels = tf.one_hot(labels, 2, axis=-1)
+
+    columns = [data.pop("age"), data.pop("fnlwgt"), data.pop("education-num"),
+                data.pop("capital-gain"), data.pop("capital-loss"),
+                data.pop("hours-per-week")]
+
+    num_features = []
+    for column in columns:
+        column = tf.transpose(column)
+        num_features.append(column)
+    num_features = tf.concat(0, [num_features])
+    num_features = tf.transpose(num_features)
+
+    features = []
+    features.append(num_features)
+    for feature in data:
+        indices = tf.contrib.lookup.string_to_index(
+            data[feature],
+            mapping=[OUT_OF_VOCAB_KEY] + VOCAB[feature],
+            default_value=0,
+            name='%s_lookup' % feature)
+        one_hot_vec = tf.one_hot(indices, len(VOCAB[feature]) + 1, on_value=1.0,
+                                 axis=-1)
+        features.append(one_hot_vec)
+    features = tf.concat(1, features)
 
     return features, labels
 
@@ -108,12 +122,11 @@ def _decode(example_batch):
     """Decode a batch of CSV lines into a feature map."""
 
     if FLAGS.is_predicting:
-        record_defaults = [[0.0], [""], [0.0], [""], [0], [""], [""], [""],
-                           [""],
-                           [""], [0], [0], [0], [""]]
+        record_defaults = [[0.0], [""], [0.0], [""], [0.0], [""], [""], [""],
+                           [""], [""], [0.0], [0.0], [0.0], [""]]
     else:
-        record_defaults = [[0.0], [""], [0.0], [""], [0], [""], [""], [""],
-                           [""], [""], [0], [0], [0], [""], [""]]
+        record_defaults = [[0.0], [""], [0.0], [""], [0.0], [""], [""], [""],
+                           [""], [""], [0.0], [0.0], [0.0], [""], [""]]
 
     fields = tf.decode_csv(example_batch, record_defaults, field_delim=',')
     if FLAGS.is_predicting:
@@ -157,10 +170,11 @@ def inputs(pattern, is_training=True):
         else:
             epochs = 1  # Evaluation should go through input data exactly once.
         filename_queue = tf.train.string_input_producer(
-            files, num_epochs=epochs, shuffle=is_training,
+            files, num_epochs=epochs, shuffle=False,  # is_training,
             name='filename_queue')
 
-        read_threads = min(len(files), MAX_READ_THREADS)
+        # read_threads = min(len(files), MAX_READ_THREADS)
+        read_threads = 1
         examples_list = [_read(filename_queue) for _ in range(read_threads)]
         min_after_dequeue = 1024 * FLAGS.input_queue_memory_factor
         capacity = min_after_dequeue + read_threads * FLAGS.batch_size
