@@ -11,10 +11,10 @@ import tensorflow as tf
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string("model_dir", "/tmp/poker_hand", "Base directory for output models.")
+flags.DEFINE_string("model_dir", "/tmp/poker_hand2", "Base directory for output models.")
 flags.DEFINE_string("model_type", "deep",
                     "Valid model types: {'wide', 'deep', 'wide_n_deep'}.")
-flags.DEFINE_integer("train_steps", 2000, "Number of training steps.")
+flags.DEFINE_integer("train_steps", 10000, "Number of training steps.")
 flags.DEFINE_string(
     "train_data",
     "",
@@ -61,7 +61,7 @@ def build_estimator(model_dir):
 
     model = tf.contrib.learn.DNNClassifier(model_dir=model_dir,
                                            feature_columns=deep_columns,
-                                           hidden_units=[50, 100, 20],
+                                           hidden_units=[20, 100, 20],
                                            n_classes=10)
     return model
 
