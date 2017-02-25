@@ -17,10 +17,10 @@ def read_tensors_from_csv(file_name, header=None, defaults=None, num_columns=Non
     if header is None:
         header = [str(i) for i in range(num_columns)]
 
-    converted_header = [item for item in header]
-
     if defaults is None:
-        defaults = [[0.0] for _ in range(num_columns)]
+        defaults = [0.0 for _ in range(num_columns)]
+
+    record_defaults = [[item] for item in defaults]
 
     if len(defaults) != num_columns:
         raise ValueError(
@@ -35,7 +35,7 @@ def read_tensors_from_csv(file_name, header=None, defaults=None, num_columns=Non
         num_epochs=num_epochs)
 
     columns = tf.decode_csv(
-        examples, record_defaults=defaults, field_delim=delimiter)
-    features = dict(zip(converted_header, columns))
+        examples, record_defaults=record_defaults, field_delim=delimiter)
+    features = dict(zip(header, columns))
 
     return features
