@@ -7,24 +7,28 @@ def read_tensors_from_csv(file_name, header=None, defaults=None, num_columns=Non
         raise ValueError(
             "Invalid file_name. file_name cannot be empty.")
 
-    if header is None and (num_columns is None or num_columns <= 0):
+    if header is None and defaults is None and num_columns is None:
         raise ValueError(
-            "At least one of header and num_columns should not be None.")
+            "At least one of header, defaults and num_columns should not be None.")
 
     if header:
         num_columns = len(header)
+    elif defaults:
+        num_columns = len(defaults)
 
     if header is None:
         header = [str(i) for i in range(num_columns)]
+    elif len(header) != num_columns:
+        raise ValueError(
+            "Invalid header length.")
 
     if defaults is None:
         defaults = [0.0 for _ in range(num_columns)]
+    elif len(defaults) != num_columns:
+        raise ValueError(
+            "Invalid defaults length.")
 
     record_defaults = [[item] for item in defaults]
-
-    if len(defaults) != num_columns:
-        raise ValueError(
-            "header and defaults should be the same length.")
 
     examples = tf.contrib.learn.read_batch_examples(
         file_pattern=file_name,
