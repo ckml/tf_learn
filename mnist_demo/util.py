@@ -2,7 +2,7 @@ import tensorflow as tf
 
 
 def read_tensors_from_csv(file_name, header=None, defaults=None, num_columns=None, batch_size=1, num_epochs=None,
-             delimiter=',', randomize_input=True, num_threads=4):
+                          delimiter=',', randomize_input=True, num_threads=4):
     if file_name is None:
         raise ValueError(
             "Invalid file_name. file_name cannot be empty.")
