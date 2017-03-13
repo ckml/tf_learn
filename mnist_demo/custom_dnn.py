@@ -147,8 +147,8 @@ def batch_predict(model_dir):
     print('Batch predicting ...')
 
     estimator = get_estimator(model_dir)
-    scores = estimator.predict(input_fn=make_input_fn(FLAGS.test_data_pattern, tf.contrib.learn.ModeKeys.INFER))
-    for score in scores:
+    labels = estimator.predict(input_fn=make_input_fn(FLAGS.test_data_pattern, tf.contrib.learn.ModeKeys.INFER))
+    for score in labels:
         print(score)
 
     print('Done.')
