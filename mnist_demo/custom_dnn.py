@@ -18,7 +18,7 @@ tf.flags.DEFINE_integer("num_train_steps", 1000, "The number of steps to run tra
 tf.flags.DEFINE_float("learning_rate", 1e-2, "Learning rate.")
 
 FLAGS = tf.flags.FLAGS
-LABEL_FEATURE = "label"
+
 NUM_FEATURE_COLUMNS = 784
 
 
