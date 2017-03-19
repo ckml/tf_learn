@@ -233,6 +233,7 @@ def main():
     train(model_dir)
     eval(model_dir)
     batch_predict(model_dir)
+    online_predict(model_dir)
 
 
 if __name__ == "__main__":
