@@ -105,6 +105,7 @@ def custom_model_fn(features, labels, mode, params):
     W_fc1 = tf.get_variable(name='W_fc1', shape=[img_size2 * img_size2 * n_filters_2, n_fc])
     b_fc1 = tf.get_variable(name='b_fc1', shape=[n_fc])
     h_fc1 = tf.nn.relu(tf.matmul(h_conv2_flat, W_fc1) + b_fc1)
+    keep_prob = keep_prob if mode == tf.contrib.learn.ModeKeys.TRAIN else 1.0
     h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
     W_fc2 = tf.get_variable(name='W_fc2', shape=[n_fc, n_classes])
