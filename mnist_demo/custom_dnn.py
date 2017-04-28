@@ -5,13 +5,13 @@ from tensorflow.python.training import input as input_lib
 import util
 
 tf.flags.DEFINE_string(
-    "train_data_pattern", "/tmp/mnist/data/train.csv", "Input file path pattern used for training.")
+    "train_data_pattern", "/Users/thomasfu/data/mnist/train.csv", "Input file path pattern used for training.")
 
 tf.flags.DEFINE_string(
-    "eval_data_pattern", "/tmp/mnist/data/test.csv", "Input file path pattern used for eval.")
+    "eval_data_pattern", "/Users/thomasfu/data/mnist/test.csv", "Input file path pattern used for eval.")
 
 tf.flags.DEFINE_string(
-    "test_data_pattern", "/tmp/mnist/data/test_no_label.csv", "Input file path pattern used for testing.")
+    "test_data_pattern", "/Users/thomasfu/data/mnist/test_no_label.csv", "Input file path pattern used for testing.")
 
 tf.flags.DEFINE_integer("batch_size", 100, "Batch size.")
 
@@ -51,12 +51,12 @@ def make_input_fn(file_name, mode):
         if mode == tf.contrib.learn.ModeKeys.TRAIN or mode == tf.contrib.learn.ModeKeys.EVAL:
             targets = tf.cast(columns[0], tf.int32)
             for i in range(1, NUM_FEATURE_COLUMNS + 1):
-                normalized_features.append(columns[i] / 255.0)
+                normalized_features.append(columns[i])
             features = {'features': tf.stack(normalized_features, axis=1)}
         else:
             targets = None
             for i in range(0, NUM_FEATURE_COLUMNS):
-                normalized_features.append(columns[i] / 255.0)
+                normalized_features.append(columns[i])
             features = {'features': tf.stack(normalized_features, axis=1)}
         return features, targets
 
@@ -77,9 +77,10 @@ def custom_model_fn(features, labels, mode, params):
         last_layer = tf.contrib.layers.relu(last_layer, layer_units)
 
     logits = tf.contrib.layers.linear(last_layer, n_classes)
+    scores = tf.nn.softmax(logits)
 
     predictions = tf.argmax(logits, 1)
-    predictions_dict = {'labels': predictions}
+    predictions_dict = {'labels': predictions, 'scores': scores}
 
     if mode == tf.contrib.learn.ModeKeys.TRAIN:
         loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels, logits=logits))
@@ -109,6 +110,10 @@ def custom_model_fn(features, labels, mode, params):
         train_op=train_op,
         eval_metric_ops=eval_metric_ops)
 
+def feature_engineering_fn(features, labels):
+    for feature in features:
+        features[feature] /= 255.0
+    return features, labels
 
 def get_estimator(model_dir):
     config = tf.contrib.learn.RunConfig(save_checkpoints_secs=None, save_checkpoints_steps=1000)
@@ -120,7 +125,8 @@ def get_estimator(model_dir):
         model_fn=custom_model_fn,
         params=model_params,
         model_dir=model_dir,
-        config=config)
+        config=config,
+        feature_engineering_fn=feature_engineering_fn)
 
 
 def train(model_dir):
@@ -230,10 +236,11 @@ def online_predict(model_dir):
 def main():
     model_dir = '/tmp/mnist/model'
 
-    train(model_dir)
+    #train(model_dir)
     eval(model_dir)
-    batch_predict(model_dir)
-    online_predict(model_dir)
+    #batch_predict(model_dir)
+    for i in range(10):
+        online_predict(model_dir)
 
 
 if __name__ == "__main__":
