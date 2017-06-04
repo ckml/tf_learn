@@ -26,6 +26,10 @@ tf.flags.DEFINE_integer("num_train_steps", 1000,
 
 tf.flags.DEFINE_float("learning_rate", 1e-2, "Learning rate.")
 
+"""
+python3 -m tensorflow.python.debug.cli.offline_analyzer \
+    --dump_dir="/tmp/debug/run_<epoch_timestamp_microsec>_<uuid>"
+"""
 tf.flags.DEFINE_bool("debug", False, "Flag to enable / disable debugging.")
 
 FLAGS = tf.flags.FLAGS
