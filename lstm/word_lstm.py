@@ -338,7 +338,7 @@ def main():
   config = get_config()
   eval_config = get_config()
   eval_config.batch_size = 1
-  eval_config.num_steps = 1
+  eval_config.num_steps =1
 
   with tf.Graph().as_default():
     initializer = tf.random_uniform_initializer(-config.init_scale,
@@ -382,26 +382,5 @@ def main():
       if FLAGS.save_path:
         print("Saving model to %s." % FLAGS.save_path)
         sv.saver.save(session, FLAGS.save_path, global_step=sv.global_step)
-
-# import sys
-# import collections
-#
-# def _read_words(filename):
-#   with tf.gfile.GFile(filename, "r") as f:
-#     if sys.version_info[0] >= 3:
-#       return f.read().replace("\n", "<eos>").split()
-#     else:
-#       return f.read().decode("utf-8").replace("\n", "<eos>").split()
-#
-# def test():
-#   words = _read_words("/tmp/simple-examples/data/ptb.train.txt")
-#   print(words)
-#   counter = collections.Counter(words)
-#   print(counter)
-#   count_pairs = sorted(counter.items(), key=lambda x: (-x[1], x[0]))
-#   print(count_pairs)
-#
-#   words, _ = list(zip(*count_pairs))
-#   print(words)
 
 main()
