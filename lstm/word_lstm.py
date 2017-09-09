@@ -99,6 +99,8 @@ class PTBModel(object):
     size = config.hidden_size
     vocab_size = config.vocab_size
 
+    self.vocab_size_ = vocab_size
+
     # Slightly better results can be obtained with forget gate biases
     # initialized to 1 but the hyperparameters of the model would need to be
     # different than reported in the paper.
@@ -124,6 +126,7 @@ class PTBModel(object):
         [attn_cell() for _ in range(config.num_layers)], state_is_tuple=True)
 
     self._initial_state = cell.zero_state(batch_size, data_type())
+    self._cell = cell
 
     with tf.device("/cpu:0"):
       embedding = tf.get_variable(
@@ -153,7 +156,9 @@ class PTBModel(object):
     output = tf.reshape(tf.stack(axis=1, values=outputs), [-1, size])
     softmax_w = tf.get_variable(
         "softmax_w", [size, vocab_size], dtype=data_type())
+    self.softmax_w_ = softmax_w
     softmax_b = tf.get_variable("softmax_b", [vocab_size], dtype=data_type())
+    self.softmax_b_ = softmax_b
     logits = tf.matmul(output, softmax_w) + softmax_b
 
     # Reshape logits to be 3-D tensor for sequence loss
@@ -187,6 +192,15 @@ class PTBModel(object):
     self._new_lr = tf.placeholder(
         tf.float32, shape=[], name="new_learning_rate")
     self._lr_update = tf.assign(self._lr, self._new_lr)
+
+  def predict(self, input):
+    state = self._initial_state
+    with tf.variable_scope("RNN"):
+      (cell_output, state) = self.cell_(input, state)
+    logits = tf.matmul(cell_output, self.softmax_w_) + self.softmax_b_
+    probs = tf.nn.softmax(logits, self.vocab_size_)
+    return probs
+
 
   def assign_lr(self, session, lr_value):
     session.run(self._lr_update, feed_dict={self._new_lr: lr_value})
