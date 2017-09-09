@@ -199,8 +199,8 @@ class PTBModel(object):
       (cell_output, state) = self.cell_(input, state)
     logits = tf.matmul(cell_output, self.softmax_w_) + self.softmax_b_
     probs = tf.nn.softmax(logits, self.vocab_size_)
-    return probs
-
+    prediction = tf.argmax(probs, 1)
+    return prediction
 
   def assign_lr(self, session, lr_value):
     session.run(self._lr_update, feed_dict={self._new_lr: lr_value})
