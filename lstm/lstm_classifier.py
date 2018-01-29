@@ -245,7 +245,7 @@ def main(unused_argv):
   run_config = tf.contrib.learn.RunConfig()
   run_config = run_config.replace(model_dir="/tmp/lstm10")
   tf.contrib.learn.learn_runner.run(experiment_fn=_experiment_fn,
-                   un_config=run_config,  # RunConfig
+                   run_config=run_config,  # RunConfig
                    schedule="train_and_evaluate")
 
 
