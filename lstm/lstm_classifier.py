@@ -20,7 +20,7 @@ flags.DEFINE_float(
 
 flags.DEFINE_string(
     "optimizer_type", "Adagrad",
-    "Optimizer type. Should be one of 'Adagrad', 'Momentum', or 'SGD'.")
+    "Optimizer type. Should be one of 'Adagrad', or 'SGD'.")
 
 flags.DEFINE_string(
     "cell_type", "lstm",
