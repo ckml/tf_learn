@@ -212,7 +212,7 @@ def _experiment_fn(output_dir):
 
   export_strategy = tf.contrib.learn.make_export_strategy(serving_input_fn)
 
-  movie_review_classifier = tf.contrib.learn.DynamicRnnEstimator(
+  my_classifier = tf.contrib.learn.DynamicRnnEstimator(
       problem_type=tf.contrib.learn.ProblemType.CLASSIFICATION,
       prediction_type=1, # PredictionType.SINGLE_VALUE,
       sequence_feature_columns=sequence_feature_columns,
@@ -227,9 +227,8 @@ def _experiment_fn(output_dir):
       model_dir=output_dir,
       config=config)
 
-
-  movie_review_experiment = tf.contrib.learn.Experiment(
-      estimator=movie_review_classifier,
+  my_experiment = tf.contrib.learn.Experiment(
+      estimator=my_classifier,
       train_input_fn=train_input_fn,
       eval_input_fn=eval_input_fn,
       train_steps=FLAGS.num_train_steps,
@@ -238,7 +237,7 @@ def _experiment_fn(output_dir):
       continuous_eval_throttle_secs=5,
       export_strategies=[export_strategy])
 
-  return movie_review_experiment
+  return my_experiment
 
 
 def main(unused_argv):
